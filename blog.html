@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog – Beside You Counselling</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital@0;1&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+
+    <!-- marked.js to parse markdown into HTML -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #f9fbf9;
+            --section-alt: #f1f5f1;
+            --text-main: #4a5d4a;
+            --accent: #8fb38f;
+            --accent-soft: #d4e0d4;
+            --card-bg: #ffffff;
+            --header-bg: rgba(249, 251, 249, 0.9);
+            --heading-font: 'Playfair Display', serif;
+            --body-font: 'Inter', sans-serif;
+        }
+
+        body.dark-mode {
+            --bg-color: #1a1f1a;
+            --section-alt: #222922;
+            --text-main: #e0e6e0;
+            --accent: #a3c4a3;
+            --accent-soft: #3d4d3d;
+            --card-bg: #2a332a;
+            --header-bg: rgba(26, 31, 26, 0.9);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body:not(.light-mode-forced) {
+                --bg-color: #1a1f1a;
+                --section-alt: #222922;
+                --text-main: #e0e6e0;
+                --accent: #a3c4a3;
+                --accent-soft: #3d4d3d;
+                --card-bg: #2a332a;
+                --header-bg: rgba(26, 31, 26, 0.9);
+            }
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--body-font);
+            line-height: 1.6;
+            transition: background 0.4s ease, color 0.4s ease;
+        }
+
+        /* Navbar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 8%;
+            background: var(--header-bg);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            border-bottom: 1px solid var(--accent-soft);
+        }
+
+        .logo {
+            font-family: var(--heading-font);
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-main);
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover, .nav-links a.active { color: var(--accent); }
+
+        #theme-toggle {
+            background: var(--accent-soft);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: 0.3s;
+        }
+
+        #theme-toggle:hover { opacity: 0.8; }
+        .icon-sun { display: none; }
+        .icon-moon { display: inline; }
+        body.dark-mode .icon-sun { display: inline; }
+        body.dark-mode .icon-moon { display: none; }
+
+        /* Page header */
+        .page-header {
+            padding: 160px 10% 80px;
+            text-align: center;
+        }
+
+        .page-header h1 {
+            font-family: var(--heading-font);
+            font-size: clamp(2.5rem, 6vw, 3.5rem);
+            margin-bottom: 1rem;
+        }
+
+        .page-header p {
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+
+        /* Blog list */
+        .blog-section {
+            padding: 0 10% 100px;
+            max-width: 860px;
+            margin: 0 auto;
+        }
+
+        .blog-post {
+            background: var(--card-bg);
+            border-radius: 20px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.04);
+            overflow: hidden;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .blog-post:hover {
+            box-shadow: 0 12px 32px rgba(0,0,0,0.08);
+        }
+
+        .post-header {
+            padding: 2rem 2.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            user-select: none;
+        }
+
+        .post-header-text h2 {
+            font-family: var(--heading-font);
+            font-size: 1.4rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .post-date {
+            font-size: 0.82rem;
+            opacity: 0.6;
+            font-weight: 400;
+        }
+
+        .post-toggle {
+            font-size: 1.4rem;
+            color: var(--accent);
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+
+        .blog-post.open .post-toggle {
+            transform: rotate(45deg);
+        }
+
+        .post-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease, padding 0.3s ease;
+            padding: 0 2.5rem;
+        }
+
+        .blog-post.open .post-body {
+            max-height: 2000px;
+            padding: 0 2.5rem 2.5rem;
+        }
+
+        .post-body-inner {
+            border-top: 1px solid var(--accent-soft);
+            padding-top: 1.5rem;
+            line-height: 1.8;
+        }
+
+        .post-body-inner h1,
+        .post-body-inner h2,
+        .post-body-inner h3 {
+            font-family: var(--heading-font);
+            margin: 1.2rem 0 0.6rem;
+        }
+
+        .post-body-inner p { margin-bottom: 1rem; }
+
+        .post-body-inner a {
+            color: var(--accent);
+            text-decoration: underline;
+        }
+
+        /* Loading / empty states */
+        .state-message {
+            text-align: center;
+            padding: 4rem 0;
+            opacity: 0.6;
+            font-size: 1rem;
+        }
+
+        footer {
+            padding: 4rem 10%;
+            text-align: center;
+            font-size: 0.85rem;
+            opacity: 0.7;
+            border-top: 1px solid var(--accent-soft);
+        }
+
+        @media (max-width: 768px) {
+            .nav-links { gap: 1rem; }
+            .nav-links li:not(:last-child) { display: none; }
+            .blog-section { padding: 0 5% 60px; }
+            .post-header { padding: 1.5rem; }
+            .post-body { padding: 0 1.5rem; }
+            .blog-post.open .post-body { padding: 0 1.5rem 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="index.html" class="logo">Beside You Counselling</a>
+        <ul class="nav-links">
+            <li><a href="index.html#home">Home</a></li>
+            <li><a href="index.html#about">About</a></li>
+            <li><a href="index.html#services">Services</a></li>
+            <li><a href="blog.html" class="active">Blog</a></li>
+            <li><a href="index.html#contact">Contact</a></li>
+            <li>
+                <button id="theme-toggle" title="Toggle Light/Dark Mode">
+                    <span class="icon-sun">☀️</span>
+                    <span class="icon-moon">🌙</span>
+                </button>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="page-header">
+        <h1>From the <em>Blog</em></h1>
+        <p>Thoughts on wellbeing, mindfulness, and the journey ahead.</p>
+    </div>
+
+    <div class="blog-section">
+        <div id="posts-container">
+            <p class="state-message">Loading posts…</p>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; Beside You Counselling. Created with care.</p>
+    </footer>
+
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+    <script>
+        if (window.netlifyIdentity) {
+            window.netlifyIdentity.on("init", user => {
+                if (!user) {
+                    window.netlifyIdentity.on("login", () => {
+                        document.location.href = "/admin/";
+                    });
+                }
+            });
+        }
+    </script>
+
+    <script>
+        // ── Theme toggle ──────────────────────────────────────────
+        const themeBtn = document.getElementById("theme-toggle");
+        const body = document.body;
+        const savedTheme = localStorage.getItem("theme");
+        if (savedTheme === "dark") body.classList.add("dark-mode");
+        else if (savedTheme === "light") body.classList.add("light-mode-forced");
+
+        themeBtn.addEventListener("click", () => {
+            if (body.classList.contains("dark-mode")) {
+                body.classList.remove("dark-mode");
+                body.classList.add("light-mode-forced");
+                localStorage.setItem("theme", "light");
+            } else {
+                body.classList.add("dark-mode");
+                body.classList.remove("light-mode-forced");
+                localStorage.setItem("theme", "dark");
+            }
+        });
+
+        // ── Blog post loader ──────────────────────────────────────
+        const container = document.getElementById("posts-container");
+
+        // Parse front matter (--- key: value --- at top of markdown files)
+        function parseFrontMatter(text) {
+            const match = text.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
+            if (!match) return { meta: {}, body: text };
+            const meta = {};
+            match[1].split("\n").forEach(line => {
+                const [key, ...rest] = line.split(":");
+                if (key) meta[key.trim()] = rest.join(":").trim().replace(/^["']|["']$/g, "");
+            });
+            return { meta, body: match[2] };
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return "";
+            const d = new Date(dateStr);
+            return d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+        }
+
+        function renderPosts(posts) {
+            if (!posts.length) {
+                container.innerHTML = `<p class="state-message">No posts yet — check back soon.</p>`;
+                return;
+            }
+
+            // Sort newest first
+            posts.sort((a, b) => new Date(b.meta.date || 0) - new Date(a.meta.date || 0));
+
+            container.innerHTML = posts.map((post, i) => `
+                <article class="blog-post" id="post-${i}">
+                    <div class="post-header" onclick="togglePost(${i})">
+                        <div class="post-header-text">
+                            <h2>${post.meta.title || "Untitled"}</h2>
+                            <span class="post-date">${formatDate(post.meta.date)}</span>
+                        </div>
+                        <span class="post-toggle">+</span>
+                    </div>
+                    <div class="post-body">
+                        <div class="post-body-inner">
+                            ${marked.parse(post.body)}
+                        </div>
+                    </div>
+                </article>
+            `).join("");
+        }
+
+        function togglePost(i) {
+            const el = document.getElementById(`post-${i}`);
+            el.classList.toggle("open");
+        }
+
+        // Fetch the list of markdown files from the _posts folder
+        // Decap CMS saves posts as .md files in /_posts/
+        async function loadPosts() {
+            try {
+                // Fetch the _posts directory listing via the GitHub contents API
+                // Falls back gracefully if no posts exist yet
+                const res = await fetch("/_posts/");
+                if (!res.ok) throw new Error("No posts folder yet");
+                const text = await res.text();
+
+                // Parse file links from directory listing
+                const matches = [...text.matchAll(/href="([^"]+\.md)"/g)];
+                const filenames = matches.map(m => m[1]);
+
+                if (!filenames.length) {
+                    container.innerHTML = `<p class="state-message">No posts yet — check back soon.</p>`;
+                    return;
+                }
+
+                const posts = await Promise.all(
+                    filenames.map(async filename => {
+                        const r = await fetch(filename);
+                        const raw = await r.text();
+                        return parseFrontMatter(raw);
+                    })
+                );
+
+                renderPosts(posts);
+            } catch (e) {
+                container.innerHTML = `<p class="state-message">No posts yet — check back soon.</p>`;
+            }
+        }
+
+        loadPosts();
+    </script>
+</body>
+</html>
