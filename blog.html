@@ -124,16 +124,18 @@
         }
 
         async function loadPosts() {
+            const GITHUB_USER = "ewanrf";
+            const GITHUB_REPO = "Beside-You-Counselling";
+            const API = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/_posts`;
             try {
-                const res = await fetch("/_posts/");
+                const res = await fetch(API);
                 if (!res.ok) throw new Error();
-                const text = await res.text();
-                const matches = [...text.matchAll(/href="([^"]+\.md)"/g)];
-                const filenames = matches.map(m => m[1]);
-                if (!filenames.length) throw new Error();
+                const files = await res.json();
+                const mdFiles = files.filter(f => f.name.endsWith(".md"));
+                if (!mdFiles.length) throw new Error();
                 const posts = await Promise.all(
-                    filenames.map(async filename => {
-                        const r = await fetch(filename);
+                    mdFiles.map(async file => {
+                        const r = await fetch(file.download_url);
                         return parseFrontMatter(await r.text());
                     })
                 );
