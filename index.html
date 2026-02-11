@@ -63,10 +63,11 @@
         <div class="container">
             <h2>Get In Touch</h2>
             <p>I offer a free initial chat to see if we are a good fit for your journey.</p>
-            <form class="contact-form" onsubmit="event.preventDefault(); alert('Message sent! (Demo only)');">
-                <input type="text" placeholder="Full Name" required>
-                <input type="email" placeholder="Email Address" required>
-                <textarea rows="5" placeholder="Tell me a little about what's on your mind..."></textarea>
+            <form class="contact-form" name="contact" method="POST" data-netlify="true">
+                <input type="hidden" name="form-name" value="contact">
+                <input type="text" name="name" placeholder="Full Name" required>
+                <input type="email" name="email" placeholder="Email Address" required>
+                <textarea name="message" rows="5" placeholder="Tell me a little about what's on your mind..."></textarea>
                 <button type="submit" class="btn-primary" style="border:none; cursor:pointer;">Send Message</button>
             </form>
         </div>
